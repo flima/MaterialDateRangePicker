@@ -50,7 +50,7 @@ import java.util.Locale;
 /**
  * Dialog to set a time.
  */
-public class TimePickerDialog extends DialogFragment implements OnValueSelectedListener{
+public class TimePickerDialog extends DialogFragment implements OnValueSelectedListener {
     private static final String TAG = "TimePickerDialog";
 
     private static final String KEY_HOUR_OF_DAY = "hour_of_day";
@@ -60,13 +60,15 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
     private static final String KEY_IS_24_HOUR_VIEW = "is_24_hour_view";
     private static final String KEY_TITLE = "dialog_title";
     private static final String KEY_CURRENT_ITEM_SHOWING = "current_item_showing";
-    private static final String KEY_CURRENT_ITEM_SHOWING_END="current_item_showing_end";
+    private static final String KEY_CURRENT_ITEM_SHOWING_END = "current_item_showing_end";
     private static final String KEY_IN_KB_MODE = "in_kb_mode";
     private static final String KEY_TYPED_TIMES = "typed_times";
     private static final String KEY_DARK_THEME = "dark_theme";
     private static final String KEY_ACCENT = "accent";
     private static final String KEY_VIBRATE = "vibrate";
     private static final String KEY_DISMISS = "dismiss";
+    private static final String KEY_FIRST_TAB_INDICATOR = "first_tab_indicator";
+    private static final String KEY_SECOND_TAB_INDICATOR = "second_tab_indicator";
 
     public static final int HOUR_INDEX = 0;
     public static final int MINUTE_INDEX = 1;
@@ -100,6 +102,8 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
     private int mUnselectedColor;
     private String mAmText;
     private String mPmText;
+    private String mFistTabIndicator = "FROM";
+    private String mSecondTabIndicator = "TO";
 
     private boolean mAllowAutoAdvance;
     private int mInitialHourOfDay;
@@ -143,9 +147,9 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
     public interface OnTimeSetListener {
 
         /**
-         * @param view The view associated with this listener.
+         * @param view      The view associated with this listener.
          * @param hourOfDay The hour that was set.
-         * @param minute The minute that was set.
+         * @param minute    The minute that was set.
          */
         void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int hourOfDayEnd, int minuteEnd);
     }
@@ -155,21 +159,21 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
     }
 
     /**
-    public TimePickerDialog(Context context, int theme, OnTimeSetListener callback,
-            int hourOfDay, int minute, boolean is24HourMode) {
-        // Empty constructor required for dialog fragment.
-    }
+     * public TimePickerDialog(Context context, int theme, OnTimeSetListener callback,
+     * int hourOfDay, int minute, boolean is24HourMode) {
+     * // Empty constructor required for dialog fragment.
+     * }
      **/
 
     public static TimePickerDialog newInstance(OnTimeSetListener callback,
-            int hourOfDay, int minute, boolean is24HourMode) {
+                                               int hourOfDay, int minute, boolean is24HourMode) {
         TimePickerDialog ret = new TimePickerDialog();
         ret.initialize(callback, hourOfDay, minute, is24HourMode);
         return ret;
     }
 
     public void initialize(OnTimeSetListener callback,
-            int hourOfDay, int minute, boolean is24HourMode) {
+                           int hourOfDay, int minute, boolean is24HourMode) {
         mCallback = callback;
 
         mInitialHourOfDay = hourOfDay;
@@ -211,6 +215,7 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
 
     /**
      * Set whether the device should vibrate when touching fields
+     *
      * @param vibrate true if the device should vibrate when touching a field
      */
     public void vibrate(boolean vibrate) {
@@ -219,6 +224,7 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
 
     /**
      * Set whether the picker should dismiss itself when it's pausing or whether it should try to survive an orientation change
+     *
      * @param dismissOnPause true if the picker should dismiss itself
      */
     public void dismissOnPause(boolean dismissOnPause) {
@@ -243,12 +249,20 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
         mInKbMode = false;
     }
 
+    public void setFistTabIndicator(String fistTabIndicator) {
+        this.mFistTabIndicator = fistTabIndicator;
+    }
+
+    public void setSecondTabIndicator(String secondTabIndicator) {
+        this.mSecondTabIndicator = secondTabIndicator;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null && savedInstanceState.containsKey(KEY_HOUR_OF_DAY)
-                    && savedInstanceState.containsKey(KEY_MINUTE)
-                    && savedInstanceState.containsKey(KEY_IS_24_HOUR_VIEW)) {
+                && savedInstanceState.containsKey(KEY_MINUTE)
+                && savedInstanceState.containsKey(KEY_IS_24_HOUR_VIEW)) {
             mInitialHourOfDay = savedInstanceState.getInt(KEY_HOUR_OF_DAY);
             mInitialMinute = savedInstanceState.getInt(KEY_MINUTE);
             mIs24HourMode = savedInstanceState.getBoolean(KEY_IS_24_HOUR_VIEW);
@@ -257,12 +271,14 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
             mThemeDark = savedInstanceState.getBoolean(KEY_DARK_THEME);
             mAccentColor = savedInstanceState.getInt(KEY_ACCENT);
             mVibrate = savedInstanceState.getBoolean(KEY_VIBRATE);
+            mFistTabIndicator = savedInstanceState.getString(KEY_FIRST_TAB_INDICATOR);
+            mSecondTabIndicator = savedInstanceState.getString(KEY_SECOND_TAB_INDICATOR);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         View view = inflater.inflate(R.layout.range_time_picker_dialog, null);
@@ -283,11 +299,11 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
         tabHost.setup();
         TabHost.TabSpec startDatePage = tabHost.newTabSpec("start");
         startDatePage.setContent(R.id.start_date_group);
-        startDatePage.setIndicator("FROM");
+        startDatePage.setIndicator(mFistTabIndicator);
 
         TabHost.TabSpec endDatePage = tabHost.newTabSpec("end");
         endDatePage.setContent(R.id.end_date_group);
-        endDatePage.setIndicator("TO");
+        endDatePage.setIndicator(mSecondTabIndicator);
 
         tabHost.addTab(startDatePage);
         tabHost.addTab(endDatePage);
@@ -318,7 +334,7 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
         mTimePicker.setOnValueSelectedListener(this);
         mTimePicker.setOnKeyListener(keyboardListener);
         mTimePicker.initialize(getActivity(), this, mInitialHourOfDay,
-            mInitialMinute, mIs24HourMode);
+                mInitialMinute, mIs24HourMode);
 
         mTimePickerEnd = (RadialPickerLayout) view.findViewById(R.id.time_picker_end);
         mTimePickerEnd.setOnValueSelectedListener(this);
@@ -381,7 +397,7 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
                 }
                 if (mCallback != null) {
                     mCallback.onTimeSet(mTimePicker,
-                            mTimePicker.getHours(), mTimePicker.getMinutes(),mTimePickerEnd.getHours(), mTimePickerEnd.getMinutes());
+                            mTimePicker.getHours(), mTimePicker.getMinutes(), mTimePickerEnd.getHours(), mTimePickerEnd.getMinutes());
                 }
                 dismiss();
             }
@@ -394,10 +410,10 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
             @Override
             public void onClick(View v) {
                 tryVibrate();
-                if(getDialog() != null) getDialog().cancel();
+                if (getDialog() != null) getDialog().cancel();
             }
         });
-        mCancelButton.setTypeface(TypefaceHelper.get(getDialog().getContext(),"Roboto-Medium"));
+        mCancelButton.setTypeface(TypefaceHelper.get(getDialog().getContext(), "Roboto-Medium"));
         mCancelButton.setVisibility(isCancelable() ? View.VISIBLE : View.GONE);
 
         // Enable or disable the AM/PM view.
@@ -440,7 +456,7 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
                     int amOrPm = mTimePickerEnd.getIsCurrentlyAmOrPm();
                     if (amOrPm == AM) {
                         amOrPm = PM;
-                    } else if (amOrPm == PM){
+                    } else if (amOrPm == PM) {
                         amOrPm = AM;
                     }
                     updateAmPmDisplay(amOrPm);
@@ -493,30 +509,29 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
             mTimePicker.setAccentColor(mAccentColor);
             mTimePickerEnd.setAccentColor(mAccentColor);
             mOkButton.setTextColor(mAccentColor);
-        }else{
+        } else {
             int circleBackground = res.getColor(R.color.mdtp_circle_background);
             int backgroundColor = res.getColor(R.color.mdtp_background_color);
             int darkBackgroundColor = res.getColor(R.color.mdtp_light_gray);
             int lightGray = res.getColor(R.color.mdtp_light_gray);
 
-            mTimePicker.setBackgroundColor(mThemeDark? lightGray : circleBackground);
+            mTimePicker.setBackgroundColor(mThemeDark ? lightGray : circleBackground);
             mTimePickerEnd.setBackgroundColor(mThemeDark ? lightGray : circleBackground);
             view.findViewById(R.id.time_picker_dialog).setBackgroundColor(mThemeDark ? darkBackgroundColor : backgroundColor);
         }
 
 
-
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {
-                if(tabId=="start"){
+                if (tabId == "start") {
                     setCurrentItemShowing(mTimePicker.getCurrentItemShowing(), true, false, true);
-                    setHour(mTimePicker.getHours(),false);
+                    setHour(mTimePicker.getHours(), false);
                     setMinute(mTimePicker.getMinutes());
                     updateAmPmDisplay(mTimePicker.getIsCurrentlyAmOrPm());
-                }else{
+                } else {
                     setCurrentItemShowing(mTimePickerEnd.getCurrentItemShowing(), true, false, true);
-                    setHour(mTimePickerEnd.getHours(),false);
+                    setHour(mTimePickerEnd.getHours(), false);
                     setMinute(mTimePickerEnd.getMinutes());
                     updateAmPmDisplay(mTimePickerEnd.getIsCurrentlyAmOrPm());
                 }
@@ -535,52 +550,52 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
     public void onPause() {
         super.onPause();
         mHapticFeedbackController.stop();
-        if(mDismissOnPause) dismiss();
+        if (mDismissOnPause) dismiss();
     }
 
     @Override
     public void onCancel(DialogInterface dialog) {
         super.onCancel(dialog);
-        if(mOnCancelListener != null) mOnCancelListener.onCancel(dialog);
+        if (mOnCancelListener != null) mOnCancelListener.onCancel(dialog);
     }
 
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        if(mOnDismissListener != null) mOnDismissListener.onDismiss(dialog);
+        if (mOnDismissListener != null) mOnDismissListener.onDismiss(dialog);
     }
 
     public void tryVibrate() {
-        if(mVibrate) mHapticFeedbackController.tryVibrate();
+        if (mVibrate) mHapticFeedbackController.tryVibrate();
     }
 
     private void updateAmPmDisplay(int amOrPm) {
         if (amOrPm == AM) {
-            if(tabHost.getCurrentTab()==0){
+            if (tabHost.getCurrentTab() == 0) {
                 mAmPmTextView.setText(mAmText);
                 mAmPmHitspace.setContentDescription(mAmText);
                 Utils.tryAccessibilityAnnounce(mTimePicker, mAmText);
-            }else{
+            } else {
                 mAmPmTextViewEnd.setText(mAmText);
                 mAmPmHitspaceEnd.setContentDescription(mAmText);
                 Utils.tryAccessibilityAnnounce(mTimePickerEnd, mAmText);
             }
 
-        } else if (amOrPm == PM){
-            if(tabHost.getCurrentTab()==0){
+        } else if (amOrPm == PM) {
+            if (tabHost.getCurrentTab() == 0) {
                 mAmPmTextView.setText(mPmText);
                 mAmPmHitspace.setContentDescription(mPmText);
                 Utils.tryAccessibilityAnnounce(mTimePicker, mPmText);
-            }else{
+            } else {
                 mAmPmTextViewEnd.setText(mPmText);
                 mAmPmHitspaceEnd.setContentDescription(mPmText);
                 Utils.tryAccessibilityAnnounce(mTimePickerEnd, mPmText);
             }
 
         } else {
-            if(tabHost.getCurrentTab()==0){
+            if (tabHost.getCurrentTab() == 0) {
                 mAmPmTextView.setText(mDoublePlaceholderText);
-            }else{
+            } else {
                 mAmPmTextViewEnd.setText(mDoublePlaceholderText);
             }
         }
@@ -604,6 +619,8 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
             outState.putBoolean(KEY_DARK_THEME, mThemeDark);
             outState.putInt(KEY_ACCENT, mAccentColor);
             outState.putBoolean(KEY_VIBRATE, mVibrate);
+            outState.putString(KEY_FIRST_TAB_INDICATOR, mFistTabIndicator);
+            outState.putString(KEY_SECOND_TAB_INDICATOR, mSecondTabIndicator);
         }
     }
 
@@ -619,20 +636,20 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
                 setCurrentItemShowing(MINUTE_INDEX, true, true, false);
                 announcement += ". " + mSelectMinutes;
             } else {
-                if(tabHost.getCurrentTab()==0){
+                if (tabHost.getCurrentTab() == 0) {
                     mTimePicker.setContentDescription(mHourPickerDescription + ": " + newValue);
                     Utils.tryAccessibilityAnnounce(mTimePicker, announcement);
-                }else{
+                } else {
                     mTimePickerEnd.setContentDescription(mHourPickerDescription + ": " + newValue);
                     Utils.tryAccessibilityAnnounce(mTimePickerEnd, announcement);
                 }
             }
 
-        } else if (pickerIndex == MINUTE_INDEX){
+        } else if (pickerIndex == MINUTE_INDEX) {
             setMinute(newValue);
-            if (tabHost.getCurrentTab()==0){
+            if (tabHost.getCurrentTab() == 0) {
                 mTimePicker.setContentDescription(mMinutePickerDescription + ": " + newValue);
-            }else{
+            } else {
                 mTimePickerEnd.setContentDescription(mMinutePickerDescription + ": " + newValue);
             }
 
@@ -659,13 +676,13 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
         }
 
         CharSequence text = String.format(format, value);
-        if(tabHost.getCurrentTab()==0){
+        if (tabHost.getCurrentTab() == 0) {
             mHourView.setText(text);
             mHourSpaceView.setText(text);
             if (announce) {
                 Utils.tryAccessibilityAnnounce(mTimePicker, text);
             }
-        }else{
+        } else {
             mHourViewEnd.setText(text);
             mHourSpaceViewEnd.setText(text);
             if (announce) {
@@ -680,11 +697,11 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
             value = 0;
         }
         CharSequence text = String.format(Locale.getDefault(), "%02d", value);
-        if(tabHost.getCurrentTab()==0){
+        if (tabHost.getCurrentTab() == 0) {
             Utils.tryAccessibilityAnnounce(mTimePicker, text);
             mMinuteView.setText(text);
             mMinuteSpaceView.setText(text);
-        }else{
+        } else {
             Utils.tryAccessibilityAnnounce(mTimePickerEnd, text);
             mMinuteViewEnd.setText(text);
             mMinuteSpaceViewEnd.setText(text);
@@ -693,8 +710,8 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
 
     // Show either Hours or Minutes.
     private void setCurrentItemShowing(int index, boolean animateCircle, boolean delayLabelAnimate,
-            boolean announce) {
-        if(tabHost.getCurrentTab()==0){
+                                       boolean announce) {
+        if (tabHost.getCurrentTab() == 0) {
             mTimePicker.setCurrentItemShowing(index, animateCircle);
 
             TextView labelToAnimate;
@@ -717,8 +734,8 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
                 labelToAnimate = mMinuteView;
             }
 
-            int hourColor = (index == HOUR_INDEX)? mSelectedColor : mUnselectedColor;
-            int minuteColor = (index == MINUTE_INDEX)? mSelectedColor : mUnselectedColor;
+            int hourColor = (index == HOUR_INDEX) ? mSelectedColor : mUnselectedColor;
+            int minuteColor = (index == MINUTE_INDEX) ? mSelectedColor : mUnselectedColor;
             mHourView.setTextColor(hourColor);
             mMinuteView.setTextColor(minuteColor);
 
@@ -727,7 +744,7 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
                 pulseAnimator.setStartDelay(PULSE_ANIMATOR_DELAY);
             }
             pulseAnimator.start();
-        }else{
+        } else {
             mTimePickerEnd.setCurrentItemShowing(index, animateCircle);
 
             TextView labelToAnimate;
@@ -750,8 +767,8 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
                 labelToAnimate = mMinuteViewEnd;
             }
 
-            int hourColor = (index == HOUR_INDEX)? mSelectedColor : mUnselectedColor;
-            int minuteColor = (index == MINUTE_INDEX)? mSelectedColor : mUnselectedColor;
+            int hourColor = (index == HOUR_INDEX) ? mSelectedColor : mUnselectedColor;
+            int minuteColor = (index == MINUTE_INDEX) ? mSelectedColor : mUnselectedColor;
             mHourViewEnd.setTextColor(hourColor);
             mMinuteViewEnd.setTextColor(minuteColor);
 
@@ -766,15 +783,16 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
 
     /**
      * For keyboard mode, processes key events.
+     *
      * @param keyCode the pressed key.
      * @return true if the key was successfully processed, false otherwise.
      */
     private boolean processKeyUp(int keyCode) {
         if (keyCode == KeyEvent.KEYCODE_ESCAPE || keyCode == KeyEvent.KEYCODE_BACK) {
-            if(isCancelable()) dismiss();
+            if (isCancelable()) dismiss();
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_TAB) {
-            if(mInKbMode) {
+            if (mInKbMode) {
                 if (isTypedTimeFullyLegal()) {
                     finishKbMode(true);
                 }
@@ -789,7 +807,7 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
             }
             if (mCallback != null) {
                 mCallback.onTimeSet(mTimePicker,
-                        mTimePicker.getHours(), mTimePicker.getMinutes(),mTimePickerEnd.getHours(), mTimePickerEnd.getMinutes());
+                        mTimePicker.getHours(), mTimePicker.getMinutes(), mTimePickerEnd.getHours(), mTimePickerEnd.getMinutes());
             }
             dismiss();
             return true;
@@ -805,10 +823,10 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
                     } else {
                         deletedKeyStr = String.format("%d", getValFromKeyCode(deleted));
                     }
-                    if(tabHost.getCurrentTab()==0){
+                    if (tabHost.getCurrentTab() == 0) {
                         Utils.tryAccessibilityAnnounce(mTimePicker,
                                 String.format(mDeletedKeyFormat, deletedKeyStr));
-                    }else{
+                    } else {
                         Utils.tryAccessibilityAnnounce(mTimePickerEnd,
                                 String.format(mDeletedKeyFormat, deletedKeyStr));
                     }
@@ -822,7 +840,7 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
                 || keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7
                 || keyCode == KeyEvent.KEYCODE_8 || keyCode == KeyEvent.KEYCODE_9
                 || (!mIs24HourMode &&
-                        (keyCode == getAmOrPmKeyCode(AM) || keyCode == getAmOrPmKeyCode(PM)))) {
+                (keyCode == getAmOrPmKeyCode(AM) || keyCode == getAmOrPmKeyCode(PM)))) {
             if (!mInKbMode) {
                 if (mTimePicker == null) {
                     // Something's wrong, because time picker should definitely not be null.
@@ -845,9 +863,10 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
     /**
      * Try to start keyboard mode with the specified key, as long as the timepicker is not in the
      * middle of a touch-event.
+     *
      * @param keyCode The key to use as the first press. Keyboard mode will not be started if the
-     * key is not legal to start with. Or, pass in -1 to get into keyboard mode without a starting
-     * key.
+     *                key is not legal to start with. Or, pass in -1 to get into keyboard mode without a starting
+     *                key.
      */
     private void tryStartingKbMode(int keyCode) {
         if (mTimePicker.trySettingInputEnabled(false) &&
@@ -873,9 +892,9 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
         }
 
         int val = getValFromKeyCode(keyCode);
-        if(tabHost.getCurrentTab()==0){
+        if (tabHost.getCurrentTab() == 0) {
             Utils.tryAccessibilityAnnounce(mTimePicker, String.format("%d", val));
-        }else{
+        } else {
             Utils.tryAccessibilityAnnounce(mTimePickerEnd, String.format("%d", val));
         }
 
@@ -933,18 +952,19 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
 
     /**
      * Get out of keyboard mode. If there is nothing in typedTimes, revert to TimePicker's time.
+     *
      * @param updateDisplays If true, update the displays with the relevant time.
      */
     private void finishKbMode(boolean updateDisplays) {
         mInKbMode = false;
         if (!mTypedTimes.isEmpty()) {
             int values[] = getEnteredTime(null);
-            if(tabHost.getCurrentTab()==0){
+            if (tabHost.getCurrentTab() == 0) {
                 mTimePicker.setTime(values[0], values[1]);
                 if (!mIs24HourMode) {
                     mTimePicker.setAmOrPm(values[2]);
                 }
-            }else{
+            } else {
                 mTimePickerEnd.setTime(values[0], values[1]);
                 if (!mIs24HourMode) {
                     mTimePickerEnd.setAmOrPm(values[2]);
@@ -955,9 +975,9 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
         }
         if (updateDisplays) {
             updateDisplay(false);
-            if(tabHost.getCurrentTab()==0){
+            if (tabHost.getCurrentTab() == 0) {
                 mTimePicker.trySettingInputEnabled(true);
-            }else{
+            } else {
                 mTimePickerEnd.trySettingInputEnabled(true);
             }
 
@@ -968,28 +988,29 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
      * Update the hours, minutes, and AM/PM displays with the typed times. If the typedTimes is
      * empty, either show an empty display (filled with the placeholder text), or update from the
      * timepicker's values.
+     *
      * @param allowEmptyDisplay if true, then if the typedTimes is empty, use the placeholder text.
-     * Otherwise, revert to the timepicker's values.
+     *                          Otherwise, revert to the timepicker's values.
      */
     private void updateDisplay(boolean allowEmptyDisplay) {
         if (!allowEmptyDisplay && mTypedTimes.isEmpty()) {
 
-            if(tabHost.getCurrentTab()==0){
+            if (tabHost.getCurrentTab() == 0) {
                 int hour = mTimePicker.getHours();
                 int minute = mTimePicker.getMinutes();
                 setHour(hour, true);
                 setMinute(minute);
                 if (!mIs24HourMode) {
-                    updateAmPmDisplay(hour < 12? AM : PM);
+                    updateAmPmDisplay(hour < 12 ? AM : PM);
                 }
                 setCurrentItemShowing(mTimePicker.getCurrentItemShowing(), true, true, true);
-            }else{
+            } else {
                 int hour = mTimePickerEnd.getHours();
                 int minute = mTimePickerEnd.getMinutes();
                 setHour(hour, true);
                 setMinute(minute);
                 if (!mIs24HourMode) {
-                    updateAmPmDisplay(hour < 12? AM : PM);
+                    updateAmPmDisplay(hour < 12 ? AM : PM);
                 }
                 setCurrentItemShowing(mTimePickerEnd.getCurrentItemShowing(), true, true, true);
             }
@@ -997,21 +1018,21 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
         } else {
             Boolean[] enteredZeros = {false, false};
             int[] values = getEnteredTime(enteredZeros);
-            String hourFormat = enteredZeros[0]? "%02d" : "%2d";
-            String minuteFormat = (enteredZeros[1])? "%02d" : "%2d";
-            String hourStr = (values[0] == -1)? mDoublePlaceholderText :
-                String.format(hourFormat, values[0]).replace(' ', mPlaceholderText);
-            String minuteStr = (values[1] == -1)? mDoublePlaceholderText :
-                String.format(minuteFormat, values[1]).replace(' ', mPlaceholderText);
+            String hourFormat = enteredZeros[0] ? "%02d" : "%2d";
+            String minuteFormat = (enteredZeros[1]) ? "%02d" : "%2d";
+            String hourStr = (values[0] == -1) ? mDoublePlaceholderText :
+                    String.format(hourFormat, values[0]).replace(' ', mPlaceholderText);
+            String minuteStr = (values[1] == -1) ? mDoublePlaceholderText :
+                    String.format(minuteFormat, values[1]).replace(' ', mPlaceholderText);
 
-            if(tabHost.getCurrentTab()==0){
+            if (tabHost.getCurrentTab() == 0) {
                 mHourView.setText(hourStr);
                 mHourSpaceView.setText(hourStr);
                 mHourView.setTextColor(mUnselectedColor);
                 mMinuteView.setText(minuteStr);
                 mMinuteSpaceView.setText(minuteStr);
                 mMinuteView.setTextColor(mUnselectedColor);
-            }else{
+            } else {
                 mHourViewEnd.setText(hourStr);
                 mHourSpaceViewEnd.setText(hourStr);
                 mHourViewEnd.setTextColor(mUnselectedColor);
@@ -1055,9 +1076,10 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
 
     /**
      * Get the currently-entered time, as integer values of the hours and minutes typed.
+     *
      * @param enteredZeros A size-2 boolean array, which the caller should initialize, and which
-     * may then be used for the caller to know whether zeros had been explicitly entered as either
-     * hours of minutes. This is helpful for deciding whether to show the dashes, or actual 0's.
+     *                     may then be used for the caller to know whether zeros had been explicitly entered as either
+     *                     hours of minutes. This is helpful for deciding whether to show the dashes, or actual 0's.
      * @return A size-3 int array. The first value will be the hours, the second value will be the
      * minutes, and the third will be either TimePickerDialog.AM or TimePickerDialog.PM.
      */
@@ -1068,7 +1090,7 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
             int keyCode = mTypedTimes.get(mTypedTimes.size() - 1);
             if (keyCode == getAmOrPmKeyCode(AM)) {
                 amOrPm = AM;
-            } else if (keyCode == getAmOrPmKeyCode(PM)){
+            } else if (keyCode == getAmOrPmKeyCode(PM)) {
                 amOrPm = PM;
             }
             startIndex = 2;
@@ -1079,22 +1101,22 @@ public class TimePickerDialog extends DialogFragment implements OnValueSelectedL
             int val = getValFromKeyCode(mTypedTimes.get(mTypedTimes.size() - i));
             if (i == startIndex) {
                 minute = val;
-            } else if (i == startIndex+1) {
-                minute += 10*val;
+            } else if (i == startIndex + 1) {
+                minute += 10 * val;
                 if (enteredZeros != null && val == 0) {
                     enteredZeros[1] = true;
                 }
-            } else if (i == startIndex+2) {
+            } else if (i == startIndex + 2) {
                 hour = val;
-            } else if (i == startIndex+3) {
-                hour += 10*val;
+            } else if (i == startIndex + 3) {
+                hour += 10 * val;
                 if (enteredZeros != null && val == 0) {
                     enteredZeros[0] = true;
                 }
             }
         }
 
-        return new int[] {hour, minute, amOrPm};
+        return new int[]{hour, minute, amOrPm};
     }
 
     /**
